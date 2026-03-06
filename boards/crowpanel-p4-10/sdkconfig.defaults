@@ -47,6 +47,8 @@ CONFIG_SLAVE_IDF_TARGET_ESP32C6=y
 # Enable WiFi remote — routes esp_wifi_* API through esp_hosted to the C6
 CONFIG_ESP_WIFI_REMOTE_ENABLED=y
 CONFIG_ESP_WIFI_REMOTE_LIBRARY_HOSTED=y
+# Disable EAP (enterprise WiFi) — esp_eap_method_t missing in ESP-IDF v5.4.0
+CONFIG_ESP_WIFI_REMOTE_EAP_ENABLED=n
 
 CONFIG_ESP_HOSTED_ENABLED=y
 CONFIG_ESP_HOSTED_P4_DEV_BOARD_NONE=y
