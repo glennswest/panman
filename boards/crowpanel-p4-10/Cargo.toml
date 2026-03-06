@@ -41,4 +41,4 @@ esp_idf_sdkconfig_defaults = ["sdkconfig.defaults"]
 remote_component = { name = "espressif/esp_wifi_remote", version = "~0.16" }
 
 [[package.metadata.esp-idf-sys.extra_components]]
-remote_component = { name = "espressif/esp_hosted", version = "~2.3" }
+remote_component = { name = "espressif/esp_hosted", version = "*" }
