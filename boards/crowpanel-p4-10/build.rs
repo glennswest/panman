@@ -1,12 +1,13 @@
 fn main() {
-    // On ESP32 builds, this would invoke the ESP-IDF build system:
-    // embuild::espidf::sysenv::output();
+    // embuild handles ESP-IDF build system integration:
+    // - Downloads ESP-IDF v5.4 if not pre-installed
+    // - Installs RISC-V GCC toolchain
+    // - Runs CMake/Ninja to build ESP-IDF components
+    // - Generates Rust FFI bindings via bindgen
     //
-    // For native host builds (development/testing), nothing extra needed.
-
-    #[cfg(target_os = "espidf")]
-    {
-        // ESP-IDF build integration handled by esp-idf-sys
-        // The sdkconfig.defaults and partitions.csv are picked up automatically
+    // CARGO_CFG_TARGET_OS is set by Cargo to the *target* OS (not the host),
+    // so this correctly gates the ESP-IDF build on cross-compilation.
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("espidf") {
+        embuild::espidf::sysenv::output();
     }
 }

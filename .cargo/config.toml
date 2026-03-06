@@ -1,0 +1,21 @@
+# ESP32-P4 target configuration
+#
+# The riscv32imafc-esp-espidf target is Tier 3 in Rust, which means:
+# - Cannot use `rustup target add` — must use build-std
+# - Requires nightly toolchain
+# - Standard library is compiled from source on each build
+#
+# Default target is NOT set here so `cargo build` works on the host
+# for development/testing. Use the full target flag for ESP32 builds:
+#
+#   cargo +nightly build --release --target riscv32imafc-esp-espidf -p panman-crowpanel-p4-10
+#
+# Or use the container:
+#   podman run --rm -v $(pwd):/work panman-toolchain
+
+[target.riscv32imafc-esp-espidf]
+linker = "ldproxy"
+runner = "espflash flash --monitor"
+
+[unstable]
+build-std = ["std", "panic_abort"]

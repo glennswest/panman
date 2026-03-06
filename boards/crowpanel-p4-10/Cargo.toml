@@ -18,12 +18,18 @@ panman-hal = { workspace = true, features = ["crowpanel-p4-10"] }
 log = { workspace = true }
 
 # ESP-IDF dependencies — only resolve when building for ESP32 target
-# [target.'cfg(target_os = "espidf")'.dependencies]
-# esp-idf-svc = { version = "0.50", features = ["alloc"] }
-# esp-idf-hal = "0.45"
-# esp-idf-sys = { version = "0.36", features = ["binstart"] }
-# lv_binding_rust = { version = "0.6" }
+[target.'cfg(target_os = "espidf")'.dependencies]
+esp-idf-svc = { version = "0.51", features = ["alloc"] }
+esp-idf-hal = "0.45"
+esp-idf-sys = { version = "0.36", features = ["binstart"] }
 
 # Native build dependencies for development/testing on host
 [target.'cfg(not(target_os = "espidf"))'.dependencies]
 env_logger = "0.11"
+
+[build-dependencies]
+embuild = { version = "0.33", features = ["espidf"] }
+
+[package.metadata.esp-idf-sys]
+esp_idf_version = "v5.4"
+esp_idf_sdkconfig_defaults = ["sdkconfig.defaults"]
