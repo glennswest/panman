@@ -17,7 +17,8 @@ panman-ota = { workspace = true }
 panman-hal = { workspace = true, features = ["crowpanel-p4-10"] }
 log = { workspace = true }
 
-# ESP-IDF dependencies — only resolve when building for ESP32 target
+# ESP-IDF dependencies (version specs; workspace [patch.crates-io] overrides
+# to git master for ESP32-P4 support)
 [target.'cfg(target_os = "espidf")'.dependencies]
 esp-idf-svc = { version = "0.51", features = ["alloc"] }
 esp-idf-hal = "0.45"

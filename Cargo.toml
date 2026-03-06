@@ -25,3 +25,11 @@ serde_json = "1"
 toml = "0.8"
 log = "0.4"
 thiserror = "2"
+
+# Patch crates.io versions with git master for ESP32-P4 support
+# The P4 fix PRs (#564-#572) were merged Jan-Feb 2026, after the
+# crates.io releases (0.45.2, 0.51.0, 0.36.1 from Jan 2025).
+[patch.crates-io]
+esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal.git" }
+esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc.git" }
+esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys.git" }
