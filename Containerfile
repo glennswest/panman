@@ -60,11 +60,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- \
 RUN cargo install ldproxy espflash --locked \
     && rm -rf ${CARGO_HOME}/registry ${CARGO_HOME}/git
 
-# Install ESP-IDF v5.4 (pre-installed so first build is fast)
+# Install ESP-IDF v5.4.1 (pre-installed so first build is fast)
 ENV IDF_PATH=/opt/esp-idf
 ENV IDF_TOOLS_PATH=/opt/espressif
 
-RUN git clone --branch v5.4 --depth 1 --shallow-submodules --recursive \
+RUN git clone --branch v5.4.1 --depth 1 --shallow-submodules --recursive \
     https://github.com/espressif/esp-idf.git ${IDF_PATH} \
     && ${IDF_PATH}/install.sh esp32p4 \
     && rm -rf ${IDF_PATH}/.git
