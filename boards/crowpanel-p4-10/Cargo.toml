@@ -18,11 +18,8 @@ panman-hal = { workspace = true, features = ["crowpanel-p4-10"] }
 log = { workspace = true }
 
 # ESP-IDF sys crate — provides entry point (binstart) and C FFI bindings.
-# esp-idf-hal and esp-idf-svc are not included yet: the git master branches
-# have inter-crate compatibility issues for ESP32-P4 (WiFi-via-companion,
-# modem peripheral restructure). Will add when crates.io releases catch up.
-# Our code uses platform-agnostic traits; actual ESP-IDF calls will go
-# through esp-idf-sys directly.
+# The esp_hosted and esp_wifi_remote components handle WiFi via the
+# ESP32-C6 companion chip over SDIO.
 [target.'cfg(target_os = "espidf")'.dependencies]
 esp-idf-sys = { version = "0.36", features = ["binstart"] }
 
@@ -36,3 +33,10 @@ embuild = { version = "0.33", features = ["espidf"] }
 [package.metadata.esp-idf-sys]
 esp_idf_version = "v5.4"
 esp_idf_sdkconfig_defaults = ["sdkconfig.defaults"]
+
+# Extra IDF components for WiFi via companion chip
+[[package.metadata.esp-idf-sys.extra_components]]
+remote_component = { name = "espressif/esp_hosted", version = "2.3" }
+
+[[package.metadata.esp-idf-sys.extra_components]]
+remote_component = { name = "espressif/esp_wifi_remote", version = "0.16" }

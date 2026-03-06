@@ -5,7 +5,7 @@ backlight_timeout_secs = 120
 
 [wifi]
 ssid = "HomeNetwork"
-# password stored in NVS, not config file
+# password = "secret"  # Optional — for dev/initial setup only. Production uses NVS.
 
 [ota]
 check_url = "http://192.168.1.100:8082/firmware/panman"

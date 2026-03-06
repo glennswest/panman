@@ -1,14 +1,8 @@
-use panman_client::cache::DeviceCache;
-use panman_client::rest::ZmanClient;
-use panman_client::ws::WsConnection;
+mod wifi;
+mod ota_esp;
+
 use panman_core::config::PanelConfig;
-use panman_hal::board::Board;
-use panman_hal::boards::crowpanel_p4_10::CrowPanelP4_10;
 use panman_ota::checker::OtaChecker;
-use panman_ota::rollback::RollbackManager;
-use panman_ui::screen::{Screen, ScreenManager};
-use panman_ui::screens::dashboard::DashboardScreen;
-use panman_ui::screens::settings::SettingsScreen;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -20,118 +14,179 @@ zman_url = "http://192.168.1.100:8081"
 
 [wifi]
 ssid = ""
+
+[ota]
+check_url = "http://192.168.1.100:8082/firmware/panman"
+check_interval_secs = 3600
+auto_update = false
 "#;
+
+// ---- ESP-IDF logger ----
+
+#[cfg(target_os = "espidf")]
+struct EspLogger;
+
+#[cfg(target_os = "espidf")]
+impl log::Log for EspLogger {
+    fn enabled(&self, _: &log::Metadata) -> bool {
+        true
+    }
+    fn log(&self, record: &log::Record) {
+        println!(
+            "[{}] ({}) {}",
+            record.level(),
+            record.target(),
+            record.args()
+        );
+    }
+    fn flush(&self) {}
+}
+
+#[cfg(target_os = "espidf")]
+static ESP_LOGGER: EspLogger = EspLogger;
 
 fn main() {
     // Initialize logging
     #[cfg(not(target_os = "espidf"))]
     env_logger::init();
 
-    // On ESP32: esp_idf_svc::log::EspLogger::initialize_default()
+    #[cfg(target_os = "espidf")]
+    {
+        log::set_logger(&ESP_LOGGER).unwrap();
+        log::set_max_level(log::LevelFilter::Info);
+    }
 
-    log::info!("panman v{} starting on {}", VERSION, CrowPanelP4_10::name());
+    log::info!("panman v{} starting", VERSION);
 
-    // Load config (from NVS on ESP32, or default for development)
+    // Load config
     let config = PanelConfig::from_toml(DEFAULT_CONFIG).expect("parse default config");
 
-    // Initialize board hardware
-    let peripherals = CrowPanelP4_10::init().expect("board init");
-    log::info!(
-        "Display: {}x{}",
-        peripherals.width,
-        peripherals.height
-    );
+    // Initialize NVS (required for WiFi credential storage)
+    if let Err(e) = wifi::init_nvs() {
+        log::error!("NVS init failed: {}", e);
+        return;
+    }
 
-    // Set backlight on
-    CrowPanelP4_10::set_backlight(100).ok();
+    // Initialize WiFi subsystem
+    if let Err(e) = wifi::init() {
+        log::error!("WiFi init failed: {}", e);
+        return;
+    }
 
-    // Initialize OTA rollback manager
-    let mut rollback = RollbackManager::new();
-
-    // Create zman client
-    let zman = ZmanClient::new(&config.panel.zman_url);
-    log::info!("zman API: {}", zman.base_url());
-
-    // Create WebSocket connection
-    let ws = WsConnection::new(&zman.ws_url());
-    log::info!("WebSocket: {}", ws.url());
-
-    // Create device cache
-    let _cache = DeviceCache::new();
-
-    // Create OTA checker if configured
-    let _ota_checker = config.ota.check_url.as_ref().map(|url| {
-        OtaChecker::new(url, VERSION)
-    });
-
-    // Create screens
-    let mut screens: Vec<Box<dyn Screen>> = Vec::new();
-    let mut screen_names: Vec<String> = Vec::new();
-
-    for screen_cfg in &config.screens {
-        match screen_cfg.name.as_str() {
-            "settings" => {
-                let settings = SettingsScreen::new(VERSION, &config.wifi.ssid, &config.panel.zman_url);
-                screens.push(Box::new(settings));
-                screen_names.push("settings".into());
+    // Connect to WiFi if SSID is configured
+    if !config.wifi.ssid.is_empty() {
+        let password = config.wifi.password.as_deref().unwrap_or("");
+        if let Err(e) = wifi::connect(&config.wifi.ssid, password) {
+            log::error!("WiFi connect failed: {}", e);
+        } else {
+            // Wait for connection (30 second timeout)
+            log::info!("Waiting for WiFi connection...");
+            if wifi::wait_for_connection(30_000) {
+                log::info!("WiFi connected successfully");
+            } else {
+                log::warn!("WiFi connection timed out (will retry in background)");
             }
-            _ => {
-                // Default to dashboard screen
-                let dashboard = DashboardScreen::new(screen_cfg.clone());
-                screens.push(Box::new(dashboard));
-                screen_names.push(screen_cfg.name.clone());
+        }
+    } else {
+        log::warn!("No WiFi SSID configured — skipping WiFi connection");
+    }
+
+    // OTA rollback handling
+    if ota_esp::is_pending_verification() {
+        if wifi::is_connected() {
+            // WiFi is up — confirm this firmware as valid
+            if let Err(e) = ota_esp::confirm_firmware() {
+                log::error!("OTA confirm failed: {}", e);
+            }
+        } else {
+            log::warn!("OTA: pending verification but WiFi not connected — will confirm later");
+        }
+    }
+
+    // Check for OTA updates if configured
+    if let Some(ref check_url) = config.ota.check_url {
+        if wifi::is_connected() {
+            log::info!("Checking for OTA updates at {}", check_url);
+            check_and_apply_ota(check_url, config.ota.auto_update);
+        }
+    }
+
+    log::info!("panman v{} ready", VERSION);
+
+    // Main loop
+    #[cfg(target_os = "espidf")]
+    {
+        let check_interval_ms = config.ota.check_interval_secs * 1000;
+        let mut last_ota_check: u64 = 0;
+
+        loop {
+            unsafe {
+                esp_idf_sys::vTaskDelay(1000);
+            }
+
+            // Periodic OTA check
+            if let Some(ref check_url) = config.ota.check_url {
+                let now = unsafe { esp_idf_sys::esp_timer_get_time() as u64 / 1000 };
+                if wifi::is_connected() && now - last_ota_check > check_interval_ms as u64 {
+                    last_ota_check = now;
+                    check_and_apply_ota(check_url, config.ota.auto_update);
+                }
+            }
+
+            // Confirm OTA if WiFi just came up after pending verification
+            if ota_esp::is_pending_verification() && wifi::is_connected() {
+                if let Err(e) = ota_esp::confirm_firmware() {
+                    log::error!("OTA confirm failed: {}", e);
+                }
             }
         }
     }
 
-    // If no screens defined, create a default dashboard
-    if screens.is_empty() {
-        let settings = SettingsScreen::new(VERSION, &config.wifi.ssid, &config.panel.zman_url);
-        screens.push(Box::new(settings));
-        screen_names.push("settings".into());
-    }
-
-    let screen_mgr = ScreenManager::new(screen_names);
-
-    // Create all screens
-    for screen in &mut screens {
-        screen.create().expect("screen create");
-    }
-
-    log::info!(
-        "UI ready: {} screens, active='{}'",
-        screen_mgr.screen_count(),
-        screen_mgr.active_name()
-    );
-
-    // On ESP32, the main loop would:
-    // 1. Core 0: LVGL timer handler (lv_timer_handler) every 5ms
-    //    - Read touch input -> feed to LVGL
-    //    - LVGL renders dirty areas to display buffer -> flush callback
-    // 2. Core 1 (async tasks):
-    //    - WiFi connection management
-    //    - REST sync: GET /api/v1/devices -> cache.load_devices()
-    //    - WebSocket: receive events -> cache.apply_event() -> screen.on_state_changed()
-    //    - OTA: periodic check -> prompt user or auto-update
-    //    - Backlight timeout: dim after inactivity, wake on touch
-    // 3. Cross-core communication via std::sync::mpsc:
-    //    - UiMessage::SendCommand -> REST POST
-    //    - UiMessage::Navigate -> screen_mgr.navigate_to()
-    //    - UiMessage::CheckOta -> ota_checker.check()
-    //    - UiMessage::InstallOta -> ota_updater.start()
-
-    // Confirm OTA if this is a fresh update (after WiFi + zman verified)
-    if rollback.is_pending_verification() {
-        // In real firmware: only confirm after WiFi + zman connection succeeds
-        rollback.confirm().ok();
-        log::info!("OTA firmware confirmed");
-    }
-
-    log::info!("panman ready — waiting for ESP32 target build to run");
-
-    // On native host, just exit. On ESP32, this would be an infinite loop.
     #[cfg(not(target_os = "espidf"))]
     {
         log::info!("Running on host (not ESP32) — exiting");
+    }
+}
+
+fn check_and_apply_ota(check_url: &str, auto_update: bool) {
+    let checker = OtaChecker::new(check_url, VERSION);
+
+    match ota_esp::fetch_manifest(check_url) {
+        Ok(body) => match checker.check_manifest(&body) {
+            Ok(Some(manifest)) => {
+                log::info!(
+                    "OTA: update available: v{} -> v{}",
+                    VERSION,
+                    manifest.version
+                );
+                if let Some(ref notes) = manifest.release_notes {
+                    log::info!("OTA: release notes: {}", notes);
+                }
+                if auto_update {
+                    log::info!("OTA: auto-update enabled, installing...");
+                    match ota_esp::download_and_flash(&manifest.url) {
+                        Ok(()) => {
+                            log::info!("OTA: update installed, rebooting...");
+                            #[cfg(target_os = "espidf")]
+                            ota_esp::reboot();
+                        }
+                        Err(e) => {
+                            log::error!("OTA: update failed: {}", e);
+                        }
+                    }
+                } else {
+                    log::info!("OTA: auto-update disabled, skipping install");
+                }
+            }
+            Ok(None) => {
+                log::info!("OTA: firmware is up to date (v{})", VERSION);
+            }
+            Err(e) => {
+                log::warn!("OTA: failed to parse manifest: {}", e);
+            }
+        },
+        Err(e) => {
+            log::warn!("OTA: failed to fetch manifest: {}", e);
+        }
     }
 }

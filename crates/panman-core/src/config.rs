@@ -27,7 +27,10 @@ fn default_backlight_timeout() -> u32 {
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct WifiConfig {
     pub ssid: String,
-    // Password stored in NVS, not config
+    /// WiFi password. Optional — production devices store this in NVS.
+    /// Set here for development/initial provisioning only.
+    #[serde(default)]
+    pub password: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
