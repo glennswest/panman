@@ -1,0 +1,14 @@
+[package]
+name = "panman-hal"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Hardware abstraction layer for panman panels"
+
+[features]
+default = ["crowpanel-p4-10"]
+crowpanel-p4-10 = []
+
+[dependencies]
+panman-core = { workspace = true }
+log = { workspace = true }

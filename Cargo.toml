@@ -1,0 +1,27 @@
+[workspace]
+members = [
+    "crates/panman-core",
+    "crates/panman-client",
+    "crates/panman-ui",
+    "crates/panman-ota",
+    "crates/panman-hal",
+    "boards/crowpanel-p4-10",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+panman-core = { path = "crates/panman-core" }
+panman-client = { path = "crates/panman-client" }
+panman-ui = { path = "crates/panman-ui" }
+panman-ota = { path = "crates/panman-ota" }
+panman-hal = { path = "crates/panman-hal" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+log = "0.4"
+thiserror = "2"

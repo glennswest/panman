@@ -1,0 +1,29 @@
+[package]
+name = "panman-crowpanel-p4-10"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Panman firmware for CrowPanel Advanced 10.1\" ESP32-P4"
+
+[[bin]]
+name = "panman-crowpanel-p4-10"
+path = "src/main.rs"
+
+[dependencies]
+panman-core = { workspace = true }
+panman-client = { workspace = true }
+panman-ui = { workspace = true }
+panman-ota = { workspace = true }
+panman-hal = { workspace = true, features = ["crowpanel-p4-10"] }
+log = { workspace = true }
+
+# ESP-IDF dependencies — only resolve when building for ESP32 target
+# [target.'cfg(target_os = "espidf")'.dependencies]
+# esp-idf-svc = { version = "0.50", features = ["alloc"] }
+# esp-idf-hal = "0.45"
+# esp-idf-sys = { version = "0.36", features = ["binstart"] }
+# lv_binding_rust = { version = "0.6" }
+
+# Native build dependencies for development/testing on host
+[target.'cfg(not(target_os = "espidf"))'.dependencies]
+env_logger = "0.11"

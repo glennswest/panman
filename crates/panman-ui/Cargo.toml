@@ -1,0 +1,10 @@
+[package]
+name = "panman-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "LVGL-based UI: widgets, screens, navigation for panman"
+
+[dependencies]
+panman-core = { workspace = true }
+log = { workspace = true }

@@ -1,0 +1,51 @@
+[panel]
+name = "Kitchen Panel"
+zman_url = "http://192.168.1.100:8081"
+backlight_timeout_secs = 120
+
+[wifi]
+ssid = "HomeNetwork"
+# password stored in NVS, not config file
+
+[ota]
+check_url = "http://192.168.1.100:8082/firmware/panman"
+check_interval_secs = 3600
+auto_update = false
+
+[[screens]]
+name = "dashboard"
+label = "Home"
+columns = 3
+
+[[screens.widgets]]
+kind = "toggle"
+device_id = "zwave.node_5"
+label = "Kitchen Light"
+
+[[screens.widgets]]
+kind = "toggle"
+device_id = "zwave.node_6"
+label = "Kitchen Fan"
+
+[[screens.widgets]]
+kind = "sensor"
+device_id = "zwave.node_2"
+label = "Living Room"
+properties = ["temperature", "humidity"]
+
+[[screens.widgets]]
+kind = "slider"
+device_id = "zwave.node_7"
+label = "Dining Dimmer"
+property = "brightness"
+min = 0
+max = 99
+
+[[screens.widgets]]
+kind = "thermostat"
+device_id = "zwave.node_10"
+label = "HVAC"
+
+[[screens]]
+name = "settings"
+label = "Settings"

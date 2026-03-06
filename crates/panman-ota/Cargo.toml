@@ -1,0 +1,12 @@
+[package]
+name = "panman-ota"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OTA update subsystem for panman"
+
+[dependencies]
+panman-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+log = { workspace = true }

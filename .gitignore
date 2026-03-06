@@ -1,0 +1,33 @@
+# Build artifacts
+target/
+dist/
+build/
+
+# IDE and OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Secrets and environment
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Logs and temp
+*.log
+tmp/
+temp/
+
+# ESP-IDF build artifacts
+sdkconfig
+sdkconfig.old
+managed_components/
+dependencies.lock
