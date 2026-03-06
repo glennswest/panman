@@ -71,8 +71,7 @@ RUN git clone --branch v5.4.3 --depth 1 --shallow-submodules --recursive \
 
 # Patch: add esp_eap_method_t typedef missing from ESP-IDF v5.4.x
 # (Added in v5.5.1; required by esp_wifi_remote component)
-RUN HEADER=${IDF_PATH}/components/wpa_supplicant/esp_supplicant/include/esp_eap_client.h && \
-    cat > /tmp/eap_patch.py << 'PYEOF'
+RUN cat > /tmp/eap_patch.py << 'PYEOF'
 import sys
 f = sys.argv[1]
 content = open(f).read()
@@ -92,7 +91,9 @@ typedef enum {
 content = content.replace('#ifdef __cplusplus', typedef + '#ifdef __cplusplus', 1)
 open(f, 'w').write(content)
 PYEOF
-    python3 /tmp/eap_patch.py "$HEADER"
+
+RUN python3 /tmp/eap_patch.py \
+    ${IDF_PATH}/components/wpa_supplicant/esp_supplicant/include/esp_eap_client.h
 
 # Tell esp-idf-sys native builder to use pre-installed ESP-IDF
 ENV ESP_IDF_TOOLS_INSTALL_DIR=global
