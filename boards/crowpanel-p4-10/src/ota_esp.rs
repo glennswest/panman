@@ -139,7 +139,7 @@ pub fn download_and_flash(url: &str) -> panman_core::error::Result<()> {
         loop {
             let read_len = esp_idf_sys::esp_http_client_read(
                 client,
-                buf.as_mut_ptr() as *mut i8,
+                buf.as_mut_ptr() as *mut core::ffi::c_char,
                 buf.len() as i32,
             );
             if read_len < 0 {
@@ -227,7 +227,7 @@ pub fn fetch_manifest(url: &str) -> panman_core::error::Result<Vec<u8>> {
         let mut body = vec![0u8; content_length.max(0) as usize + 1];
         let read_len = esp_idf_sys::esp_http_client_read_response(
             client,
-            body.as_mut_ptr() as *mut i8,
+            body.as_mut_ptr() as *mut core::ffi::c_char,
             body.len() as i32,
         );
 
@@ -248,7 +248,8 @@ pub fn reboot() -> ! {
     unsafe {
         esp_idf_sys::esp_restart();
     }
-    unreachable!()
+    #[allow(unreachable_code)]
+    loop {}
 }
 
 // ---- Host stubs ----
