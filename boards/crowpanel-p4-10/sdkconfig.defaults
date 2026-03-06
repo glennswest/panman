@@ -41,8 +41,12 @@ CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
 # Experimental features (required for esp_hosted on P4)
 CONFIG_IDF_EXPERIMENTAL_FEATURES=y
 
-# --- WiFi via ESP32-C6 companion (esp_hosted + SDIO) ---
+# --- WiFi via ESP32-C6 companion (esp_hosted + esp_wifi_remote + SDIO) ---
 CONFIG_SLAVE_IDF_TARGET_ESP32C6=y
+
+# Enable WiFi remote — routes esp_wifi_* API through esp_hosted to the C6
+CONFIG_ESP_WIFI_REMOTE_ENABLED=y
+CONFIG_ESP_WIFI_REMOTE_LIBRARY_HOSTED=y
 
 CONFIG_ESP_HOSTED_ENABLED=y
 CONFIG_ESP_HOSTED_P4_DEV_BOARD_NONE=y
