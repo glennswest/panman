@@ -33,3 +33,4 @@ thiserror = "2"
 esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal.git" }
 esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc.git" }
 esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys.git" }
+embedded-svc = { git = "https://github.com/esp-rs/embedded-svc.git" }
