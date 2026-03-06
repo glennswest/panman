@@ -8,6 +8,7 @@
 - **feat:** Boot sequence with WiFi connection, OTA rollback verification, periodic OTA checks
 - **feat:** sdkconfig.defaults for CrowPanel SDIO pin mapping (CMD=19, CLK=18, D0=14, D1=15, RST=32)
 - **feat:** Optional WiFi password in config for development/initial provisioning
+- **fix:** Use `c_char` for HTTP client FFI casts (RISC-V `c_char` is `u8`, not `i8`)
 
 ### 2026-03-05
 - **feat:** Initial project scaffold — workspace, all crate stubs, board binary crate
