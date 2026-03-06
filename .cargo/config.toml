@@ -13,6 +13,11 @@
 # Or use the container:
 #   podman run --rm -v $(pwd):/work panman-toolchain
 
+# Tell esp-idf-sys which crate holds the [package.metadata.esp-idf-sys] config.
+# Required in a virtual workspace (no root [package] in workspace Cargo.toml).
+[env]
+ESP_IDF_SYS_ROOT_CRATE = "panman-crowpanel-p4-10"
+
 [target.riscv32imafc-esp-espidf]
 linker = "ldproxy"
 runner = "espflash flash --monitor"

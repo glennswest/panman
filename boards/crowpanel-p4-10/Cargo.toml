@@ -34,9 +34,11 @@ embuild = { version = "0.33", features = ["espidf"] }
 esp_idf_version = "v5.4"
 esp_idf_sdkconfig_defaults = ["sdkconfig.defaults"]
 
-# Extra IDF components for WiFi via companion chip
+# Extra IDF components for WiFi via ESP32-C6 companion chip.
+# esp_wifi_remote provides the esp_wifi_* API implementations,
+# esp_hosted provides the SDIO transport to the companion.
 [[package.metadata.esp-idf-sys.extra_components]]
-remote_component = { name = "espressif/esp_hosted", version = "2.3" }
+remote_component = { name = "espressif/esp_wifi_remote", version = ">=0.10,<2.0" }
 
 [[package.metadata.esp-idf-sys.extra_components]]
-remote_component = { name = "espressif/esp_wifi_remote", version = "0.16" }
+remote_component = { name = "espressif/esp_hosted", version = "~2" }
