@@ -17,11 +17,13 @@ panman-ota = { workspace = true }
 panman-hal = { workspace = true, features = ["crowpanel-p4-10"] }
 log = { workspace = true }
 
-# ESP-IDF dependencies (version specs; workspace [patch.crates-io] overrides
-# to git master for ESP32-P4 support)
+# ESP-IDF sys crate — provides entry point (binstart) and C FFI bindings.
+# esp-idf-hal and esp-idf-svc are not included yet: the git master branches
+# have inter-crate compatibility issues for ESP32-P4 (WiFi-via-companion,
+# modem peripheral restructure). Will add when crates.io releases catch up.
+# Our code uses platform-agnostic traits; actual ESP-IDF calls will go
+# through esp-idf-sys directly.
 [target.'cfg(target_os = "espidf")'.dependencies]
-esp-idf-svc = { version = "0.51", features = ["alloc"] }
-esp-idf-hal = "0.45"
 esp-idf-sys = { version = "0.36", features = ["binstart"] }
 
 # Native build dependencies for development/testing on host
