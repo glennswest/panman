@@ -60,18 +60,18 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- \
 RUN cargo install ldproxy espflash --locked \
     && rm -rf ${CARGO_HOME}/registry ${CARGO_HOME}/git
 
-# Install ESP-IDF v5.4.1 (pre-installed so first build is fast)
+# Install ESP-IDF v5.4.3 (pre-installed so first build is fast)
 ENV IDF_PATH=/opt/esp-idf
 ENV IDF_TOOLS_PATH=/opt/espressif
 
-RUN git clone --branch v5.4.1 --depth 1 --shallow-submodules --recursive \
+RUN git clone --branch v5.4.3 --depth 1 --shallow-submodules --recursive \
     https://github.com/espressif/esp-idf.git ${IDF_PATH} \
     && ${IDF_PATH}/install.sh esp32p4 \
     && rm -rf ${IDF_PATH}/.git
 
 # Patch: add esp_eap_method_t typedef missing from ESP-IDF v5.4.x
 # (Added in v5.5.1; required by esp_wifi_remote component)
-RUN sed -i '/^#ifdef __cplusplus$/i \
+RUN sed -i '0,/^#ifdef __cplusplus$/{/^#ifdef __cplusplus$/i \
 /** @brief EAP method selection bitmask (backported from ESP-IDF v5.5.1) */\
 typedef enum {\
     ESP_EAP_TYPE_NONE = 0,\
@@ -82,7 +82,7 @@ typedef enum {\
     ESP_EAP_TYPE_ALL  = (ESP_EAP_TYPE_TLS | ESP_EAP_TYPE_TTLS |\
                          ESP_EAP_TYPE_PEAP | ESP_EAP_TYPE_FAST),\
 } esp_eap_method_t;\
-' ${IDF_PATH}/components/wpa_supplicant/esp_supplicant/include/esp_eap_client.h
+}' ${IDF_PATH}/components/wpa_supplicant/esp_supplicant/include/esp_eap_client.h
 
 # Tell esp-idf-sys native builder to use pre-installed ESP-IDF
 ENV ESP_IDF_TOOLS_INSTALL_DIR=global
