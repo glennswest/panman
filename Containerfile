@@ -75,7 +75,9 @@ ENV ESP_IDF_GLOB_BASE="${IDF_PATH}"
 
 WORKDIR /work
 
-# Default: build the CrowPanel firmware
-CMD ["cargo", "+nightly", "build", "--release", \
-     "--target", "riscv32imafc-esp-espidf", \
-     "-p", "panman-crowpanel-p4-10"]
+# Default: clone repo from GitHub and build the CrowPanel firmware
+CMD bash -c "git clone https://github.com/glennswest/panman.git /work/panman && \
+    cd /work/panman && \
+    cargo +nightly build --release \
+      --target riscv32imafc-esp-espidf \
+      -p panman-crowpanel-p4-10"
