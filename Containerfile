@@ -69,32 +69,6 @@ RUN git clone --branch v5.4.3 --depth 1 --shallow-submodules --recursive \
     && ${IDF_PATH}/install.sh esp32p4 \
     && rm -rf ${IDF_PATH}/.git
 
-# Patch: add esp_eap_method_t typedef missing from ESP-IDF v5.4.x
-# (Added in v5.5.1; required by esp_wifi_remote component)
-RUN cat > /tmp/eap_patch.py << 'PYEOF'
-import sys
-f = sys.argv[1]
-content = open(f).read()
-typedef = """
-/** @brief EAP method selection bitmask (backported from ESP-IDF v5.5.1) */
-typedef enum {
-    ESP_EAP_TYPE_NONE = 0,
-    ESP_EAP_TYPE_TLS  = (1 << 0),
-    ESP_EAP_TYPE_TTLS = (1 << 1),
-    ESP_EAP_TYPE_PEAP = (1 << 2),
-    ESP_EAP_TYPE_FAST = (1 << 3),
-    ESP_EAP_TYPE_ALL  = (ESP_EAP_TYPE_TLS | ESP_EAP_TYPE_TTLS |
-                         ESP_EAP_TYPE_PEAP | ESP_EAP_TYPE_FAST),
-} esp_eap_method_t;
-
-"""
-content = content.replace('#ifdef __cplusplus', typedef + '#ifdef __cplusplus', 1)
-open(f, 'w').write(content)
-PYEOF
-
-RUN python3 /tmp/eap_patch.py \
-    ${IDF_PATH}/components/wpa_supplicant/esp_supplicant/include/esp_eap_client.h
-
 # Tell esp-idf-sys native builder to use pre-installed ESP-IDF
 ENV ESP_IDF_TOOLS_INSTALL_DIR=global
 ENV ESP_IDF_GLOB_BASE="${IDF_PATH}"

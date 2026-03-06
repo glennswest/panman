@@ -9,8 +9,7 @@
 - **feat:** sdkconfig.defaults for CrowPanel SDIO pin mapping (CMD=19, CLK=18, D0=14, D1=15, RST=32)
 - **feat:** Optional WiFi password in config for development/initial provisioning
 - **fix:** Use `c_char` for HTTP client FFI casts (RISC-V `c_char` is `u8`, not `i8`)
-- **fix:** Upgrade ESP-IDF to v5.4.3 — resolves `esp_eap_method_t` undefined type in esp_wifi_remote (type added in v5.5.1)
-- **fix:** Patch `esp_eap_client.h` with `esp_eap_method_t` typedef backported from ESP-IDF v5.5.1 (missing from all v5.4.x releases)
+- **fix:** Upgrade ESP-IDF to v5.4.3 — resolves `esp_eap_method_t` undefined type (typedef added in v5.4.3, not present in v5.4.1)
 
 ### 2026-03-05
 - **feat:** Initial project scaffold — workspace, all crate stubs, board binary crate
