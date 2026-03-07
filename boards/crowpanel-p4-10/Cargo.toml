@@ -38,7 +38,7 @@ esp_idf_sdkconfig_defaults = ["sdkconfig.defaults"]
 # esp_wifi_remote provides the esp_wifi_* API implementations,
 # esp_hosted provides the SDIO transport to the companion.
 [[package.metadata.esp-idf-sys.extra_components]]
-remote_component = { name = "espressif/esp_wifi_remote", version = "~0.16" }
+remote_component = { name = "espressif/esp_wifi_remote", version = "*" }
 
 [[package.metadata.esp-idf-sys.extra_components]]
 remote_component = { name = "espressif/esp_hosted", version = "*" }
